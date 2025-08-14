@@ -39,6 +39,8 @@ std::deque<std::pair<double, pcl::PointCloud<PointType>::Ptr>> cloud_buff;
 std::deque<sensor_msgs::Imu> imu_buff;
 std::deque<nav_msgs::Odometry> gnss_buff;
 
+std::shared_ptr<std::ofstream> posesFile = nullptr;
+
 // ros visualization
 ros::Publisher odom_pub;
 ros::Publisher current_scan_pub;
@@ -426,6 +428,17 @@ void Process() {
   odom_msg.pose.pose.position.y = result_pose(1, 3);
   odom_msg.pose.pose.position.z = result_pose(2, 3);
   odom_pub.publish(odom_msg);
+
+  {
+      // write to file:
+      if ( ! posesFile ) posesFile = std::make_shared<std::ofstream>("./ig_lio_after_map_poses.txt");
+      if( posesFile && posesFile->is_open() )
+      {
+           (*posesFile) << (odom_msg.header.stamp.toNSec()) << " " << odom_msg.pose.pose.position.x << " " << odom_msg.pose.pose.position.y << " " << odom_msg.pose.pose.position.z
+                        << " " << temp_q.x() << " " << temp_q.y() << " " << temp_q.z() << " " << temp_q.w() << std::endl;
+      }
+  }
+
   // tf message
   static tf::TransformBroadcaster tf_broadcaster;
   tf::Quaternion q_tf(temp_q.x(), temp_q.y(), temp_q.z(), temp_q.w());
@@ -546,7 +559,7 @@ int main(int argc, char** argv) {
   // imu
   std::string lidar_topic, imu_topic;
   nh.param<std::string>("imu_topic", imu_topic, "/imu/data");
-  ros::Subscriber imu_sub = nh.subscribe(imu_topic, 10000, ImuCallBack);
+  ros::Subscriber imu_sub = nh.subscribe(imu_topic, 50, ImuCallBack);
   // lidar
   nh.param<std::string>("lidar_topic", lidar_topic, "velodyne_points");
   std::string lidar_type_string;
@@ -563,9 +576,9 @@ int main(int argc, char** argv) {
   }
   ros::Subscriber cloud_sub;
   if (lidar_type == LidarType::LIVOX) {
-    cloud_sub = nh.subscribe(lidar_topic, 10000, LivoxCloudCallBack);
+    cloud_sub = nh.subscribe(lidar_topic, 10, LivoxCloudCallBack);
   } else {
-    cloud_sub = nh.subscribe(lidar_topic, 10000, CloudCallBack);
+    cloud_sub = nh.subscribe(lidar_topic, 2, CloudCallBack);
   }
 
   // load param
