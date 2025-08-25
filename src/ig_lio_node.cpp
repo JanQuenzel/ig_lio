@@ -559,7 +559,7 @@ int main(int argc, char** argv) {
   // imu
   std::string lidar_topic, imu_topic;
   nh.param<std::string>("imu_topic", imu_topic, "/imu/data");
-  ros::Subscriber imu_sub = nh.subscribe(imu_topic, 50, ImuCallBack);
+  ros::Subscriber imu_sub = nh.subscribe(imu_topic, 100, ImuCallBack);
   // lidar
   nh.param<std::string>("lidar_topic", lidar_topic, "velodyne_points");
   std::string lidar_type_string;
