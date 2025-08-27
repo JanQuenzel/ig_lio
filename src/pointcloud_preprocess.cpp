@@ -140,9 +140,11 @@ void PointCloudPreprocess::ProcessOuster(
   pcl::PointCloud<OusterPointXYZIRT> cloud_origin;
   pcl::fromROSMsg(*msg, cloud_origin);
 
+  cloud_out->reserve(cloud_origin.size());
+
   for (size_t i = 0; i < cloud_origin.size(); ++i) {
     if ((i % config_.point_filter_num == 0) && !HasInf(cloud_origin.at(i)) &&
-        !HasNan(cloud_origin.at(i))) {
+        !HasNan(cloud_origin.at(i)) && !IsZero(cloud_origin.at(i))) {
       PointType point;
       point.normal_x = 0;
       point.normal_y = 0;
@@ -172,4 +174,9 @@ template <typename T>
 inline bool PointCloudPreprocess::IsNear(const T& p1, const T& p2) {
   return ((abs(p1.x - p2.x) < 1e-7) || (abs(p1.y - p2.y) < 1e-7) ||
           (abs(p1.z - p2.z) < 1e-7));
+}
+
+template <typename T>
+inline bool PointCloudPreprocess::IsZero(const T& p1) {
+  return ((abs(p1.x) < 1e-7) && (abs(p1.y) < 1e-7) && (abs(p1.z) < 1e-7));
 }

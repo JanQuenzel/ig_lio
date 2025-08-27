@@ -102,6 +102,10 @@ class PointCloudPreprocess {
   template <typename T>
   bool IsNear(const T& p1, const T& p2);
 
+  template <typename T>
+  bool IsZero(const T& p1);
+
+
   void ProcessVelodyne(const sensor_msgs::PointCloud2::ConstPtr& msg,
                        pcl::PointCloud<PointType>::Ptr& cloud_out);
 
